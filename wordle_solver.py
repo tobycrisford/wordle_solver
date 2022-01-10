@@ -7,6 +7,9 @@ Created on Mon Jan 10
 
 import numpy as np
 from english_words import english_words_set
+from tqdm import tqdm
+
+use_brute_force = False
 
 def fetch_count(count_dict, letter):
     r = count_dict.get(letter)
@@ -91,17 +94,45 @@ def create_counts(word_list):
             
     return (green_counts, orange_counts)
 
+
+# Just to see if this would work
+def get_suggestions_brute_force(word_list, possibilities):
+    
+    expected_next_count = np.zeros(len(word_list))
+    
+    for w in tqdm(range(len(word_list))):
+        for possible in possibilities:
+            response = simulate_wordle_response(possible, word_list[w])
+            for nested_possible in possibilities:
+                if simulate_wordle_response(nested_possible, word_list[w]) == response:
+                    expected_next_count[w] += 1
+        expected_next_count[w] /= len(possibilities)
+    
+    r = np.argsort(expected_next_count)
+    
+    return (r, expected_next_count[r])
+
 initial_word_list = np.array([w for w in english_words_set if len(w) == 5 and w.lower() == w])
 
 current_word_list = np.copy(initial_word_list)
+
 while True:
     
     (green_counts, orange_counts) = create_counts(current_word_list)
-    suggestions, info_scores = get_suggestions(current_word_list, green_counts, orange_counts)
-    print("Top suggested guesses:")
-    print(current_word_list[suggestions][0:5])
-    print(info_scores[0:5])
-    print(len(current_word_list))
+    brute_force_q = input("Use brute force? (y/n):")
+    use_brute_force = brute_force_q == 'y'
+    if use_brute_force:
+        suggestions, info_scores = get_suggestions_brute_force(initial_word_list, current_word_list)
+        print("Top suggested guesses:")
+        print(initial_word_list[suggestions][0:5])
+        print(info_scores[0:5])
+        print(len(current_word_list))
+    else:
+        suggestions, info_scores = get_suggestions(current_word_list, green_counts, orange_counts)
+        print("Top suggested guesses:")
+        print(current_word_list[suggestions][0:5])
+        print(info_scores[0:5])
+        print(len(current_word_list))
     #other_suggestions, other_scores = get_suggestions(initial_word_list, green_counts, orange_counts)
     #print(initial_word_list[other_suggestions][0:5])
     #print(other_scores[0:5])
