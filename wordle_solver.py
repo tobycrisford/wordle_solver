@@ -112,6 +112,34 @@ def get_suggestions_brute_force(word_list, possibilities):
     
     return (r, expected_next_count[r])
 
+#Can clearly speed the brute force method up a lot while keeping basic structure
+def get_suggestions_brutish_force(word_list, possibilities):
+    
+    expected_next_count = np.zeros(len(word_list))
+    
+    for w in tqdm(range(len(word_list))):
+        response_dict = dict()
+        for possible in possibilities:
+            response_dict[possible] = simulate_wordle_response(possible, word_list[w])
+        response_counts = dict()
+        for r in response_dict:
+            if response_dict[r] in response_counts:
+                response_counts[response_dict[r]] += 1
+            else:
+                response_counts[response_dict[r]] = 1
+        expected_next_count[w] = np.sum(np.array(list(response_counts.values()))**2) / len(possibilities)
+    
+    possibility_set = set(possibilities)
+    
+    for w in range(len(word_list)): #Boost possible words slightly to break ties as these give prob of premature victory
+        if word_list[w] in possibility_set:
+            expected_next_count[w] -= 0.0001
+            
+    r = np.argsort(expected_next_count)
+    
+    return (r, expected_next_count[r])
+        
+
 initial_word_list = np.array([w for w in english_words_set if len(w) == 5 and w.lower() == w])
 
 current_word_list = np.copy(initial_word_list)
@@ -122,7 +150,7 @@ while True:
     brute_force_q = input("Use brute force? (y/n):")
     use_brute_force = brute_force_q == 'y'
     if use_brute_force:
-        suggestions, info_scores = get_suggestions_brute_force(initial_word_list, current_word_list)
+        suggestions, info_scores = get_suggestions_brutish_force(initial_word_list, current_word_list)
         print("Top suggested guesses:")
         print(initial_word_list[suggestions][0:5])
         print(info_scores[0:5])
