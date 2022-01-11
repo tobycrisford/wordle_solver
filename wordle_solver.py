@@ -96,6 +96,7 @@ def create_counts(word_list):
 
 
 # Just to see if this would work
+# Minimizing expected number of words after guess
 def get_suggestions_brute_force(word_list, possibilities):
     
     expected_next_count = np.zeros(len(word_list))
@@ -127,13 +128,18 @@ def get_suggestions_brutish_force(word_list, possibilities):
                 response_counts[response_dict[r]] += 1
             else:
                 response_counts[response_dict[r]] = 1
-        expected_next_count[w] = np.sum(np.array(list(response_counts.values()))**2) / len(possibilities)
+        #expected_next_count[w] = np.sum(np.array(list(response_counts.values()))**2) / len(possibilities)
+        
+        #Instead of expected next count - makes more sense to minimize expected log of next count (or maximize information)
+        #This is more likely to coincide with ultimate aim of minimizing number of subsequent turns needed
+        probabilities = np.array(list(response_counts.values())) / len(possibilities)
+        expected_next_count[w] = np.sum(probabilities * np.log(probabilities))
     
     possibility_set = set(possibilities)
     
     for w in range(len(word_list)): #Boost possible words slightly to break ties as these give prob of premature victory
         if word_list[w] in possibility_set:
-            expected_next_count[w] -= 0.0001
+            expected_next_count[w] -= 0.000001
             
     r = np.argsort(expected_next_count)
     
