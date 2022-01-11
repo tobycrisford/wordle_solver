@@ -6,7 +6,7 @@ Created on Mon Jan 10
 """
 
 import numpy as np
-from english_words import english_words_set
+from wordle_dictionary import get_full_word_list
 from tqdm import tqdm
 
 use_brute_force = False
@@ -146,7 +146,7 @@ def get_suggestions_brutish_force(word_list, possibilities):
     return (r, expected_next_count[r])
         
 
-initial_word_list = np.array([w for w in english_words_set if len(w) == 5 and w.lower() == w])
+initial_word_list = np.array(get_full_word_list())
 
 current_word_list = np.copy(initial_word_list)
 
