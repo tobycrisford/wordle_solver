@@ -146,7 +146,13 @@ def get_suggestions_brutish_force(word_list, possibilities):
     return (r, expected_information[r])
         
 
-initial_word_list = np.array(get_full_word_list())
+list_options = {'wordle': 'wordle_dictionary.txt', 'unlimited': 'wordle_unlimited_dictionary.txt'}
+
+list_choice = input("Please specify which game you are playing, 'wordle' or 'unlimited'?")
+
+length_choice = input("Which length of word are you playing?:")
+
+initial_word_list = np.array(get_full_word_list(list_options[list_choice], int(length_choice)))
 
 current_word_list = np.copy(initial_word_list)
 
