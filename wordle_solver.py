@@ -31,7 +31,7 @@ def get_suggestions(word_list, green_counts, orange_counts):
                 grey_prob = 1 - green_prob
             for p in (green_prob, orange_prob, grey_prob):
                 if p != 0:
-                    information[w] += - p * np.log(p)
+                    information[w] += - p * np.log2(p)
                     
     r = np.argsort(-1 * information)
     
@@ -116,7 +116,7 @@ def get_suggestions_brute_force(word_list, possibilities):
 #Can clearly speed the brute force method up a lot while keeping basic structure
 def get_suggestions_brutish_force(word_list, possibilities):
     
-    expected_next_count = np.zeros(len(word_list))
+    expected_information = np.zeros(len(word_list))
     
     for w in tqdm(range(len(word_list))):
         response_dict = dict()
@@ -133,17 +133,17 @@ def get_suggestions_brutish_force(word_list, possibilities):
         #Instead of expected next count - makes more sense to minimize expected log of next count (or maximize information)
         #This is more likely to coincide with ultimate aim of minimizing number of subsequent turns needed
         probabilities = np.array(list(response_counts.values())) / len(possibilities)
-        expected_next_count[w] = np.sum(probabilities * np.log(probabilities))
+        expected_information[w] = -1 * np.sum(probabilities * np.log2(probabilities))
     
     possibility_set = set(possibilities)
     
     for w in range(len(word_list)): #Boost possible words slightly to break ties as these give prob of premature victory
         if word_list[w] in possibility_set:
-            expected_next_count[w] -= 0.000001
-            
-    r = np.argsort(expected_next_count)
+            expected_information[w] += 0.000001
+                       
+    r = np.argsort(-1 * expected_information)
     
-    return (r, expected_next_count[r])
+    return (r, expected_information[r])
         
 
 initial_word_list = np.array(get_full_word_list())
@@ -155,18 +155,19 @@ while True:
     (green_counts, orange_counts) = create_counts(current_word_list)
     brute_force_q = input("Use brute force? (y/n):")
     use_brute_force = brute_force_q == 'y'
+    print("Required information:",np.log2(len(current_word_list))," bits")
     if use_brute_force:
         suggestions, info_scores = get_suggestions_brutish_force(initial_word_list, current_word_list)
         print("Top suggested guesses:")
         print(initial_word_list[suggestions][0:5])
+        print("Expected information they will provide (in bits):")
         print(info_scores[0:5])
-        print(len(current_word_list))
     else:
         suggestions, info_scores = get_suggestions(current_word_list, green_counts, orange_counts)
         print("Top suggested guesses:")
         print(current_word_list[suggestions][0:5])
+        print("Expected information they will provide (in bits):")
         print(info_scores[0:5])
-        print(len(current_word_list))
     #other_suggestions, other_scores = get_suggestions(initial_word_list, green_counts, orange_counts)
     #print(initial_word_list[other_suggestions][0:5])
     #print(other_scores[0:5])
