@@ -29,8 +29,13 @@ What does applying a logarithm to the number do? In the table below I've listed 
 | 8 | 3 |
 | 16 | 4 |
 | 32 | 5 |
-| 1024 | 10 |
+| 64 | 6 |
 
-Here's an intuitive way to think about what applying the logarithm tells you. Imagine you want to uniquely label every word in your set using "bits". Bits are symbols that can only take on two values: 0 or 1. The logarithm tells you how many bits of information you will need in order to uniquely label every word in the set. For example, if you have 4 words, then you need 2 bits: 00, 01, 10, 11. If we try to minimize the logarithm of the number of remaining words after our guess, then we are minimizing the amount of *information* that we will still be missing once we are told the outcome of our guess.
+Here's an intuitive way to think about what applying the logarithm tells you. Imagine you want to uniquely label every word in your set using "bits". Bits are symbols that can only take on two values: 0 or 1. The logarithm tells you how many bits of information you will need in order to uniquely label every word in the set. For example, if you have 4 words, then you need 2 bits: 00, 01, 10, 11. If you have 8 words, you need 3 bits: 000,001,010,011,100,101,110,111. If we try to minimize the logarithm of the number of words remaining after we've made our guess, then we are minimizing the amount of *information* that we will still be missing.
 
 At this point you may be wondering why taking the logarithm makes any difference at all. The logarithm is an increasing function (if a < b then log(a) < log(b)), so if we try to minimize the number of remaining words after our guess, n, shouldn't that be the same as trying to minimize the logarithm of the number of words remaining, log(n)?
+
+Surprisingly, it's not the same, and it's because of what happens when we take the average. Take the table above. What has the higher average? The first and last rows taken together, or the middle 4 rows? If you look at the left hand column, you'd say that the first and last rows have the higher average (33 vs 15). If you look at the right hand column, you'd say that the average of the two groups is equal (3.5). This shows that minimizing the average of n is not the same optimization problem as minimizing the average of log(n). It won't be completely different, 'kudzu' will come out as a bad word under both strategies, but it will be different.
+
+So why is minimizing the average of log(n) the right thing to do, rather than just minimizing n? It helps to remember what we ultimately care about here. Is our ultimate goal actually to minimize the number of remaining words? No. Our goal is to finish the game in the fewest number of turns. But we should expect the number of turns required to complete the game to scale with the logarithm of the number of possible words. At least, if we are able to partition the set of possible words into roughly equal sized groups with each guess, then this is how it would scale. This justifies taking log(n) as the "cost function" in our optimization problem.
+
