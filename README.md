@@ -7,4 +7,6 @@ Version 2: Tried the brute force search to see what would happen. It was going t
 
 Version 3: Missed some obvious optimisations to the brute force approach. Now brute force is quick enough to be run from the first guess. Also changed it to minimize the expected value of the *log* of the remaining options after your guess, rather than the expected number of remaining options. I think this is the correct information theory thing to do. The log of the number of remaining words is going to be a better measure of the number of additional guesses required.
 
+Version 4: The game seems to be more likely to use common words than rare words. This makes sense. A lot of the words Wordle accepts as valid I've never heard of, and people wouldn't like it if the answer was a word they didn't know. I've now updated the entropy calculations to take into account the typical frequency of each word in English, using counts downloaded from Google books.
+
 For those who are interested, the best first guess according to my dictionary (now updated to use the same word list as Wordle) seems to be 'tares', so now you know.
