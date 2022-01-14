@@ -8,6 +8,8 @@ Created on Mon Jan 10
 import numpy as np
 from wordle_dictionary import get_full_word_list
 from tqdm import tqdm
+import os
+import pickle
 
 use_brute_force = False
 
@@ -94,27 +96,8 @@ def create_counts(word_list):
             
     return (green_counts, orange_counts)
 
-
-# Just to see if this would work
-# Minimizing expected number of words after guess
-def get_suggestions_brute_force(word_list, possibilities):
-    
-    expected_next_count = np.zeros(len(word_list))
-    
-    for w in tqdm(range(len(word_list))):
-        for possible in possibilities:
-            response = simulate_wordle_response(possible, word_list[w])
-            for nested_possible in possibilities:
-                if simulate_wordle_response(nested_possible, word_list[w]) == response:
-                    expected_next_count[w] += 1
-        expected_next_count[w] /= len(possibilities)
-    
-    r = np.argsort(expected_next_count)
-    
-    return (r, expected_next_count[r])
-
 #Can clearly speed the brute force method up a lot while keeping basic structure
-def get_suggestions_brutish_force(word_list, possibilities):
+def get_suggestions_brutish_force(word_list, possibilities, frequency_dict):
     
     expected_information = np.zeros(len(word_list))
     
@@ -123,28 +106,48 @@ def get_suggestions_brutish_force(word_list, possibilities):
         for possible in possibilities:
             response_dict[possible] = simulate_wordle_response(possible, word_list[w])
         response_counts = dict()
+        normalization_factor = 0
         for r in response_dict:
             if response_dict[r] in response_counts:
-                response_counts[response_dict[r]] += 1
+                response_counts[response_dict[r]] += frequency_dict[r]
             else:
-                response_counts[response_dict[r]] = 1
-        #expected_next_count[w] = np.sum(np.array(list(response_counts.values()))**2) / len(possibilities)
-        
-        #Instead of expected next count - makes more sense to minimize expected log of next count (or maximize information)
-        #This is more likely to coincide with ultimate aim of minimizing number of subsequent turns needed
-        probabilities = np.array(list(response_counts.values())) / len(possibilities)
+                response_counts[response_dict[r]] = frequency_dict[r]
+            normalization_factor += frequency_dict[r]
+
+        probabilities = np.array(list(response_counts.values())) / normalization_factor
         expected_information[w] = -1 * np.sum(probabilities * np.log2(probabilities))
     
     possibility_set = set(possibilities)
     
     for w in range(len(word_list)): #Boost possible words slightly to break ties as these give prob of premature victory
         if word_list[w] in possibility_set:
-            expected_information[w] += 0.000001
+            expected_information[w] += 0.0001
                        
     r = np.argsort(-1 * expected_information)
     
     return (r, expected_information[r])
-        
+
+def get_entropy_of_words_remaining(word_list, frequency_dict):
+    probabilities = [0 for w in word_list] #Dont convert until numpy until later because need more precision
+    normalization_factor = 0
+    for w in range(len(word_list)):
+        probabilities[w] += frequency_dict[word_list[w]]
+        normalization_factor += frequency_dict[word_list[w]]
+    probabilities = np.array([p / normalization_factor for p in probabilities])
+    probabilities = probabilities[probabilities != 0] #Some tiny values get rounded to 0 by numpy so just filter them out
+    return -1 * np.sum(probabilities * np.log2(probabilities))
+
+def get_candidate_word_probs(word_list, frequency_dict):
+    probabilities = [0 for w in word_list]
+    normalization_factor = 0
+    for w in range(len(word_list)):
+        probabilities[w] += frequency_dict[word_list[w]]
+        normalization_factor += frequency_dict[word_list[w]]
+    probabilities = np.array([p / normalization_factor for p in probabilities])
+    
+    r = np.argsort(-1 * probabilities)
+    
+    return r, probabilities[r]
 
 list_options = {'wordle': 'wordle_dictionary.txt', 'unlimited': 'wordle_unlimited_dictionary.txt'}
 
@@ -156,17 +159,36 @@ initial_word_list = np.array(get_full_word_list(list_options[list_choice], int(l
 
 current_word_list = np.copy(initial_word_list)
 
+frequency_file = list_options[list_choice] + "." + length_choice + ".pkl"
+use_word_frequencies = 'n'
+if os.path.exists(frequency_file):
+    use_word_frequencies = input("Would you like to make use of word frequencies from google books?(y/n)")
+if use_word_frequencies == 'y':
+    frequency_dict = pickle.load(open(frequency_file,'rb'))
+    freqs = frequency_dict.values()
+    max_freq = max(freqs)
+    min_freq = min(freqs)
+    for w in frequency_dict:
+        frequency_dict[w] = frequency_dict[w] / max_freq
+    for w in current_word_list:
+        if not (w in frequency_dict):
+            frequency_dict[w] = min_freq / max_freq
+else:
+    frequency_dict = dict()
+    for w in current_word_list:
+       frequency_dict[w] = 1 
+
 while True:
     
     (green_counts, orange_counts) = create_counts(current_word_list)
     brute_force_q = input("Use brute force? (y/n):")
     use_brute_force = brute_force_q == 'y'
-    print("Required information:",np.log2(len(current_word_list))," bits")
+    print("Remaining words:",len(current_word_list))
+    print("Required information:",get_entropy_of_words_remaining(current_word_list,frequency_dict)," bits")
     if use_brute_force:
-        suggestions, info_scores = get_suggestions_brutish_force(initial_word_list, current_word_list)
-        print("Top suggested guesses:")
+        suggestions, info_scores = get_suggestions_brutish_force(initial_word_list, current_word_list, frequency_dict)
+        print("Top suggested guesses and expected information they will provide (in bits):")
         print(initial_word_list[suggestions][0:5])
-        print("Expected information they will provide (in bits):")
         print(info_scores[0:5])
     else:
         suggestions, info_scores = get_suggestions(current_word_list, green_counts, orange_counts)
@@ -174,6 +196,11 @@ while True:
         print(current_word_list[suggestions][0:5])
         print("Expected information they will provide (in bits):")
         print(info_scores[0:5])
+    if use_word_frequencies == 'y':
+        candidate_words, probs = get_candidate_word_probs(current_word_list, frequency_dict)
+        print("Top candidate words and their probabilities:")
+        print(current_word_list[candidate_words[0:5]])
+        print(probs[0:5])
     #other_suggestions, other_scores = get_suggestions(initial_word_list, green_counts, orange_counts)
     #print(initial_word_list[other_suggestions][0:5])
     #print(other_scores[0:5])
