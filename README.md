@@ -12,7 +12,7 @@ This repository contains a python script for doing just that, which makes use of
 
 - The first is an approximate heuristic method, but it can run instantly.
 - The second method uses a brute force search to return the optimum guess, under the assumption that all valid guesses are equally likely to be correct. This takes about 20 minutes to run on my computer to return the first guess, but runs in under 30 seconds after that. Fortunately the best first guess is the same every time (it's "tares") so you don't have to run the brute force search on the first guess every time you play.
-- The third method expands on the second method by taking into account how often each word appears in typical English text. It is based on the observation that more common words are more likely to appear as answers to the Wordle game (no one wants the answer to be a word they had never heard of).
+- The third method expands on the second method by taking into account how often each word appears in typical English text. It is based on the observation that more common words are more likely to appear as answers to the Wordle game (no one wants the answer to be a word they had never heard of). The best first guess is still "tares".
 
 The rest of this readme explains in detail how each of these three methods work, introducing concepts from information theory as they are needed.
 
