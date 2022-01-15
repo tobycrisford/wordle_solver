@@ -13,6 +13,7 @@ import pickle
 import pandas as pd
 
 word_length = 5
+guess_length = 6
 
 st.title("Wordle Debrief App")
 
@@ -22,7 +23,7 @@ st.text("There are 12,972 words in Wordle's valid guess list, but most of these 
 answer = st.text_input("Wordle answer").lower()
 
 guesses = []
-for i in range(word_length):
+for i in range(guess_length):
     guesses.append(st.text_input("Your guess #" + str(i+1)))
     
 @st.cache
