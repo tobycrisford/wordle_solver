@@ -52,4 +52,36 @@ We've defined what we mean by the optimum guess, so all that remains is to compu
 
 The approach we'll take first is to focus on individual letters at a time. If we could work out how valuable each of the 26 letters is in position 1, and how valuable each letter is in position 2, etc, then to evaluate how good a particular word might be, we could simply sum the values of its letters. Once we've evaluated every possible word in this way, we can work out what the best one is to use as our guess. This will only be an approximation to the correct answer, and we will discuss some of its limitations below, but it will actually turn out to agree with Method 2 on the best starting guess: "tares". And we can compute Method 1 in a fraction of a second while Method 2 takes 20 minutes.
 
-How do we compute the value of an individual letter? The same way we would calculate the value of a whole word. A single letter in a single position has 3 possible results: green, orange, or grey. We would like a letter which will, on average, leave the smallest (log of the) number of remaining words once we are told its result...
+How do we compute the value of an individual letter? The same way we would calculate the value of a whole word.
+
+Suppose we want to evaluate how valuable the letter 'a' is to have in position 1. Placing the letter 'a' in position 1 can have 3 possible outcomes: it could turn green, orange or grey. These outcomes partition the set of possible words into 3, depending on which outcome they are consistent with. For example, of the ~12,000 words in Wordle's valid word list, suppose 1,000 would be consistent with the green outcome (i.e. they start with an 'a'), 5,000 would be consistent with the orange outcome (i.e. they contain an 'a' but it's not the first letter), and 6,000 would be consistent with the grey outcome (i.e. they contain no 'a's) (these numbers have all been made up for this example).
+
+Just like with the words, we want to minimize the expected logarithm of the number of words that will remain once we have been told the outcome of our guess (and here we are only considering the information we get from the letter 'a' in position 1). What would that be in this made up example? Well, assuming all valid words are equally likely to be the answer, there's a 1,000/12,000 chance that we would be left with 1,000 options, a 5,000/12,000 chance that we would be left with 5,000 options, and a 6,000/12,000 chance that we would be left with 6,000 options. If we denote the three probabilities by p_1, p_2, p_3, and the total size of the word list by N, then the general formula is going to be given by:
+
+<img src="https://render.githubusercontent.com/render/math?math=\sum_{i} p_{i} \log(p_{i} N)">
+
+This is the quantity we want to minimize. If we compute its value for letter a in position 1, we can use that as a 'score' for letter a in position 1. If we repeat this for every letter in every position, we can then compute the score for any word by summing the scores of its letters. The best word will be the one with the lowest score.
+
+We can actually simplify this formula a bit. It follows from the basic properties of logarithms that:
+
+<img src="https://render.githubusercontent.com/render/math?math=\log(p_{i} N) = \log(p_{i})%2B\log(N)">
+
+And <img src="https://render.githubusercontent.com/render/math?math=\log(N)"> is constant. So minimizing this cost function is equivalent to minimizing:
+
+<img src="https://render.githubusercontent.com/render/math?math=\sum_{i} p_{i} \log p_{i}">
+
+And this is equivalent to *maximizing*:
+
+<img src="https://render.githubusercontent.com/render/math?math=-\sum_{i} p_{i} \log{p_{i}}">
+
+This formula is famous! If you calculate this for any probability distribution it tells you its *Shannon entropy*. That is supposed to tell you the amount of information you will receive if you take a single sample from the distribution. And that is exactly what we've shown! We've been thinking in terms of minimizing the amount of information that will still be missing, but we can take the opposite point of view and talk about maximizing the amount of information that the outcome of the guess will give us. That's what the Shannon formula does.
+
+To sum up, for each letter in each of the 5 positions we can compute the Shannon entropy, which is the amount of information that using that letter in that position can be expected to give us, on average. We can calculate it from the probabilities of each of the 3 possible outcomes (green/orange/grey) using the formula above. The best letter-positions will be the ones which partition the set of words into 3 equal sized groups. The worst letter-positions are those which are almost certain to give a particular outcome (e.g. 'x' will almost certainly be grey).
+
+We can perform this computation relatively quickly. We need one pass through the word list to sum up the number of occurrences of green/orange/grey for each letter in each position. That requires ~10,000 wordle goes to be simulated. That's enough to give us all the probabilities we need. Then we need one more pass through the word list to sum up the value of each word from the value of its letters. That doesn't even need us to simulate a Wordle go, it's just a big sum.
+
+So what's wrong with this approximation? What does it miss? The big assumption we are making with this approach is that each letter is independent. This is obviously not true. For example, suppose we use a letter 'Q' in position 1. That should reduce the information provided by a 'U' in position 2, because in all the cases where the 'Q' comes back green, position 2 must be a letter 'U' with probability 1. Method 1 can't capture that kind of interaction, and so may slightly overestimate the value of a word starting 'QU...'.
+
+More seriously, this approach is going to go very wrong when it comes to guesses containing double letters. If we try a guess with 2 'L's, then we will *never* have the second 'L' turn orange with the first 'L' turning grey (the game only highlights the first match). And it is unlikely to turn orange even if the first 'L' turns orange or green (that would only happen if there are at least 2 'L's in the answer and the second 'L' is in the wrong place). So in this case, using a 'L' in your guess dramatically reduces the information content of all subsequent 'L's, and the method we've described so far won't capture that. Indeed, if I try to implement the method described so far, the top suggested guesses all have repeated letters, which clashes with the intuition that it would be better to try as many different letters as possible on your first guess to get the most information.
+
+To fix this problem, I've added a heuristic fudge to method 1 which discounts the value of repeated letters. When evaluating the value of a letter in a particular place in a particular word, if that letter has already occurred, I pretend that the probability of an orange is 0, and make up for that reduction with an increased probability of grey (the probability of a green is unchanged, since this really is independent of the other letters in the guess). This fudge actually works surprisingly well, because the top suggested guess from Method 1 is then "tares", which agrees with the top suggested guess of the more accurate, but slower, Method 2.
