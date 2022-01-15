@@ -101,11 +101,11 @@ Now, instead of the probabilities corresponding to the chances of green/orange/g
 So the full procedure for evaluating the value of a particular guess, X, is the following:
 
 - Loop through the entire list of remaining possible solutions and compute what the Wordle response would be if guess X was made against that solution.
-- Sum up how many times each different Wordle response occurs for guess X, and use that to compute the *probability* of each response happening after guess X is made.
+- Sum up how many times each different Wordle response occurs for guess X, and use that to compute the *probability* of each response occurring if we make guess X.
 - Apply the Shannon formula to these probabilities, to calculate the expected amount of information that making guess X will give us.
 
-Once we have followed this procedure for every possible guess, X, we can then pick the X with the largest information content to use as our next guess.
+Once we have followed this whole procedure for every possible guess, X, we can then pick the X with the largest information content to use as our next guess.
 
 The number of possible guesses we could make is the same on each turn, because we are allowed to guess words that have already been ruled out, and in fact it will often be beneficial to do this if they will give us more information. The number of possible solutions is reduced dramatically on each turn though, which makes the first bullet point above faster and faster as the game progresses. 
 
-The first turn is the only turn on which Method 2 runs prohibitibely slowly. It takes about 20 minutes to complete on my machine, which is longer than you probably want to spend on a game of Wordle. But fortunately, the computation for Guess 1 is exactly the same each time. This means you only need to run it once, cache the results, and retrieve those results in subsequent games.
+The first turn is the only turn on which Method 2 runs prohibitibely slowly. It takes about 20 minutes to complete on my machine, which is longer than you probably want to spend on a game of Wordle. But fortunately, the computation for Guess 1 is exactly the same each time. This means you only need to run it once, cache the results, and retrieve those results in subsequent games. If you're only interested in knowing what the best possible guess is on turn 1, I can tell you that right now: "tares".
