@@ -20,6 +20,8 @@ st.title("Wordle Debrief App")
 st.text("Calculations are based on the assumption that the prior likelihood of each\nvalid word being the answer is proportional to its frequency\nin normal English text (using Google books).")
 st.text("There are 12,972 words in Wordle's valid guess list, but most of these are \nvery obscure, and answers do seem to be biased towards more common words.")
 st.text("The debrief will usually take a few minutes to generate.")
+st.text("If you're interested in the maths behind this app, see details here:")
+st.markdown("https://github.com/tobycrisford/wordle_solver/blob/main/README.md")
 
 answer = st.text_input("Wordle answer").lower()
 
