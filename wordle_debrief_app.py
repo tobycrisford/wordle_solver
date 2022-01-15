@@ -62,6 +62,11 @@ if st.button('Create debrief'):
                 st.text("You guessed " + guess[1])
                 guess_info = np.where(results[0] == guess[1])[0]
                 guess_prob = np.where(current_word_list[candidate_words] == guess[1])[0]
-                st.text("The computer estimated this guess would provide " + str(results[1][guess_info]) + " bits of information.")
-                st.text("The computer estimated that this guess had a probability " + str(probs[guess_prob]) + " of \nbeing correct.")
+                guess_info_val = results[1][guess_info][0]
+                guess_prob_val = probs[guess_prob]
+                if len(guess_prob_val) == 0:
+                    guess_prob_val = [0]
+                guess_prob_val = guess_prob_val[0]
+                st.text("The computer estimated this guess would provide " + str(guess_info_val) + " bits of information.")
+                st.text("The computer estimated that this guess had a probability " + str(guess_prob_val) + " of \nbeing correct.")
                 current_word_list = wordle_solver.update_word_list(current_word_list, guess[1], wordle_solver.simulate_wordle_response(answer, guess[1]))
