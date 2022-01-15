@@ -149,64 +149,72 @@ def get_candidate_word_probs(word_list, frequency_dict):
     
     return r, probabilities[r]
 
-list_options = {'wordle': 'wordle_dictionary.txt', 'unlimited': 'wordle_unlimited_dictionary.txt'}
-
-list_choice = input("Please specify which game you are playing, 'wordle' or 'unlimited'?")
-
-length_choice = input("Which length of word are you playing?:")
-
-initial_word_list = np.array(get_full_word_list(list_options[list_choice], int(length_choice)))
-
-current_word_list = np.copy(initial_word_list)
-
-frequency_file = list_options[list_choice] + "." + length_choice + ".pkl"
-use_word_frequencies = 'n'
-if os.path.exists(frequency_file):
-    use_word_frequencies = input("Would you like to make use of word frequencies from google books?(y/n)")
-if use_word_frequencies == 'y':
-    frequency_dict = pickle.load(open(frequency_file,'rb'))
+def preprocess_word_frequencies(freq_file, word_list):
+    frequency_dict = pickle.load(open(freq_file,'rb'))
     freqs = frequency_dict.values()
     max_freq = max(freqs)
     min_freq = min(freqs)
     for w in frequency_dict:
         frequency_dict[w] = frequency_dict[w] / max_freq
-    for w in current_word_list:
+    for w in word_list:
         if not (w in frequency_dict):
             frequency_dict[w] = min_freq / max_freq
-else:
-    frequency_dict = dict()
-    for w in current_word_list:
-       frequency_dict[w] = 1 
+            
+    return frequency_dict
 
-while True:
+
+if __name__ == "__main__":
+
+    list_options = {'wordle': 'wordle_dictionary.txt', 'unlimited': 'wordle_unlimited_dictionary.txt'}
     
-    (green_counts, orange_counts) = create_counts(current_word_list)
-    brute_force_q = input("Use brute force? (y/n):")
-    use_brute_force = brute_force_q == 'y'
-    print("Remaining words:",len(current_word_list))
-    print("Required information:",get_entropy_of_words_remaining(current_word_list,frequency_dict)," bits")
-    if use_brute_force:
-        suggestions, info_scores = get_suggestions_brutish_force(initial_word_list, current_word_list, frequency_dict)
-        print("Top suggested guesses and expected information they will provide (in bits):")
-        print(initial_word_list[suggestions][0:5])
-        print(info_scores[0:5])
-    else:
-        suggestions, info_scores = get_suggestions(current_word_list, green_counts, orange_counts)
-        print("Top suggested guesses:")
-        print(current_word_list[suggestions][0:5])
-        print("Expected information they will provide (in bits):")
-        print(info_scores[0:5])
+    list_choice = input("Please specify which game you are playing, 'wordle' or 'unlimited'?")
+    
+    length_choice = input("Which length of word are you playing?:")
+    
+    initial_word_list = np.array(get_full_word_list(list_options[list_choice], int(length_choice)))
+    
+    current_word_list = np.copy(initial_word_list)
+    
+    frequency_file = list_options[list_choice] + "." + length_choice + ".pkl"
+    use_word_frequencies = 'n'
+    if os.path.exists(frequency_file):
+        use_word_frequencies = input("Would you like to make use of word frequencies from google books?(y/n)")
     if use_word_frequencies == 'y':
-        candidate_words, probs = get_candidate_word_probs(current_word_list, frequency_dict)
-        print("Top candidate words and their probabilities:")
-        print(current_word_list[candidate_words[0:5]])
-        print(probs[0:5])
-    #other_suggestions, other_scores = get_suggestions(initial_word_list, green_counts, orange_counts)
-    #print(initial_word_list[other_suggestions][0:5])
-    #print(other_scores[0:5])
-    next_guess = input("Enter your guess here:")
-    result = input("Enter the result here, -=grey, .=orange, *=green:")
-    current_word_list = update_word_list(current_word_list, next_guess, result)
-    if len(current_word_list) == 1:
-        print("I think I know the word: " + current_word_list[0])
-        break
+        frequency_dict = preprocess_word_frequencies(frequency_file, initial_word_list)
+    else:
+        frequency_dict = dict()
+        for w in initial_word_list:
+           frequency_dict[w] = 1
+    
+    while True:
+        
+        (green_counts, orange_counts) = create_counts(current_word_list)
+        brute_force_q = input("Use brute force? (y/n):")
+        use_brute_force = brute_force_q == 'y'
+        print("Remaining words:",len(current_word_list))
+        print("Required information:",get_entropy_of_words_remaining(current_word_list,frequency_dict)," bits")
+        if use_brute_force:
+            suggestions, info_scores = get_suggestions_brutish_force(initial_word_list, current_word_list, frequency_dict)
+            print("Top suggested guesses and expected information they will provide (in bits):")
+            print(initial_word_list[suggestions][0:5])
+            print(info_scores[0:5])
+        else:
+            suggestions, info_scores = get_suggestions(current_word_list, green_counts, orange_counts)
+            print("Top suggested guesses:")
+            print(current_word_list[suggestions][0:5])
+            print("Expected information they will provide (in bits):")
+            print(info_scores[0:5])
+        if use_word_frequencies == 'y':
+            candidate_words, probs = get_candidate_word_probs(current_word_list, frequency_dict)
+            print("Top candidate words and their probabilities:")
+            print(current_word_list[candidate_words[0:5]])
+            print(probs[0:5])
+        #other_suggestions, other_scores = get_suggestions(initial_word_list, green_counts, orange_counts)
+        #print(initial_word_list[other_suggestions][0:5])
+        #print(other_scores[0:5])
+        next_guess = input("Enter your guess here:")
+        result = input("Enter the result here, -=grey, .=orange, *=green:")
+        current_word_list = update_word_list(current_word_list, next_guess, result)
+        if len(current_word_list) == 1:
+            print("I think I know the word: " + current_word_list[0])
+            break
