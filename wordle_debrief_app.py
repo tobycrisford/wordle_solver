@@ -19,7 +19,7 @@ st.title("Wordle Debrief App")
 st.text("Calculations are based on the assumption that the prior likelihood of each\nvalid word being the answer is proportional to its frequency\nin normal English text (using Google books).")
 st.text("There are 12,972 words in Wordle's valid guess list, but most of these are \nvery obscure, and answers do seem to be biased towards more common words.")
 
-answer = st.text_input("Wordle answer")
+answer = st.text_input("Wordle answer").lower()
 
 guesses = []
 for i in range(word_length):
@@ -43,7 +43,8 @@ first_guess_results = pickle.load(open("first_guess.pkl","rb"))
     
 if st.button('Create debrief'):
     with st.spinner("Creating debrief..."):
-        for guess in enumerate(guesses):
+        lower_guesses = [g.lower() for g in guesses]
+        for guess in enumerate(lower_guesses):
             if (guess[1] != '') and (not (guess[1] is None)):
                 if guess[0] == 0:
                     results = first_guess_results
