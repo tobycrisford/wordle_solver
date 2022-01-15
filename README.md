@@ -74,7 +74,7 @@ And this is equivalent to *maximizing*:
 
 <img src="https://render.githubusercontent.com/render/math?math=-\sum_{i} p_{i} \log{p_{i}}">
 
-This formula is famous! If you calculate this for any probability distribution it will tell you the *Shannon entropy*. And that is supposed to tell you the amount of information you will receive if you take a single sample from the distribution. And that is exactly what we've shown! We've so far been thinking in terms of minimizing the amount of information that will still be missing after we've made our guess, but we can take the opposite point of view and talk about maximizing the amount of information that the outcome of the guess will give us. That's what the Shannon formula does. It is equal to 0 whenever the outcome is certain, and it is maximized when all outcomes are equally likely.
+This formula is famous! If you calculate this for any probability distribution it will tell you the *Shannon entropy*. And that is supposed to tell you the amount of information you will receive if you take a single sample from the distribution. And that is exactly what we've now shown it is! We've so far been thinking in terms of minimizing the amount of information that will still be missing after we've made our guess, but we can take the opposite point of view and talk about maximizing the amount of information that the outcome of the guess will give us. That's what the Shannon formula does. It is equal to 0 whenever the outcome is certain, and it is maximized when all outcomes are equally likely.
 
 In summary, for each letter, in each of the 5 positions, we can compute the Shannon entropy, which is the amount of information that using that letter in that position can be expected to give us, on average. We can calculate this from the probabilities of each of the 3 possible outcomes (green/orange/grey) using the formula above. The best letters in each position will be the ones which partition the set of words into 3 similar sized groups, consistent with each respective outcome. The worst letters are those which are almost certain to give a particular outcome (e.g. 'x' will almost certainly be grey and so is a bad choice).
 
@@ -86,6 +86,24 @@ More seriously, this approach is going to go very wrong when it comes to guesses
 
 To fix this problem, I've added a heuristic fudge to method 1 which discounts the value of repeated letters. When evaluating the value of a letter in a particular place in a particular word, if that letter has already occurred in the guess, I pretend that the probability of an orange is now 0, and make up for that reduction in probability with an increased probability of grey (the probability of a green is unchanged, since this really is independent of the other letters in the guess). This fudge actually works surprisingly well, because the top suggested guess from Method 1 is then "tares", which agrees with the top suggested guess of the more accurate, but slower, Method 2.
 
-## Method 2: Finding the optimum guess by brute force
+## Method 2: Finding the optimum guess without any approximations
 
+Under Method 1 we approximated the value of a word by summing the value of its letters. We saw that that worked pretty well, but it's not guaranteed to give us the right answer. It allowed for the same letter to have different values in different positions, but it didn't allow for interactions between the different letters (e.g. the fact that a 'Q' affects the information content of a following 'U'). We now want to compute the value of a word exactly, by considering it as a whole, taking absolutely everything into consideration.
 
+The only formula we need in order to evaluate the value of a particular word is the Shannon entropy formula that we already derived:
+
+<img src="https://render.githubusercontent.com/render/math?math=-\sum_{i} p_{i} \log{p_{i}}">
+
+But now instead of the probabilities corresponding to the chances of green/orange/grey for each letter, they will correspond to the chances of *every possible 5 symbol response* that we might get to our entire guess. In principle, for each guess, there might be as many as 3^5 = 243 different possible outcomes, all with different likelihoods. In practice, some of these outcomes might be impossible given the remaining word list.
+
+The full procedure for evaluating the value of a particular guess, X, is the following:
+
+- Loop through the entire list of remaining possible solutions and compute what the Wordle response would be if guess X was made against that solution.
+- Sum up how many times each different Wordle response occurs for guess X, and use that to compute the *probability* of each response happening after guess X is made.
+- Apply the Shannon formula to these probabilities, to calculate the expected amount of information that making guess X will give us.
+
+Once we have followed this procedure for every possible guess, X, we can then pick the X with the largest information content to use as our next guess.
+
+The number of possible guesses we could make is the same on each turn, because we are allowed to guess words that have already been ruled out, and in fact it will often be beneficial to do this if they will give us more information. The number of possible solutions is reduced dramatically on each turn though, which makes the Method 2 computation more and more feasible as the game progresses.
+
+The first turn is the only turn on which Method 2 runs prohibitibely slowly. It takes about 20 minutes to complete on my machine, which is longer than you probably want to spend on a game of Wordle. But fortunately, the computation for Guess 1 is exactly the same each time, so you only need to run it once, cache the results, and retrieve those results in subsequent games.
