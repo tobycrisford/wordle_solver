@@ -16,6 +16,9 @@ word_length = 5
 
 st.title("Wordle Debrief App")
 
+st.text("Calculations are based on the assumption that the prior likelihood of each\nvalid word being the answer is proportional to its frequency\nin normal English text (using Google books).")
+st.text("There are 12,972 words in Wordle's valid guess list, but most of these are \nvery obscure, and answers do seem to be biased towards more common words.")
+
 answer = st.text_input("Wordle answer")
 
 guesses = []
@@ -51,7 +54,7 @@ if st.button('Create debrief'):
                 st.text("There were " + str(len(current_word_list)) + " possible words remaining.")
                 st.text("The estimated information you were missing was " + str(wordle_solver.get_entropy_of_words_remaining(current_word_list, frequency_dict)) + " bits.")
                 st.text("The automated solver thought the top 5 guesses for maximizing your information\n would have been:")
-                st.table(pd.DataFrame({'Word': results[0][0:5], 'Information gain in bits': results[1][0:5]}))
+                st.table(pd.DataFrame({'Word': results[0][0:5], 'Expected information gain in bits': results[1][0:5]}))
                 st.text("The automated solver thought the most likely answers at this stage were:")
                 candidate_words, probs = wordle_solver.get_candidate_word_probs(current_word_list, frequency_dict)
                 st.table(pd.DataFrame({'Word': current_word_list[candidate_words[0:5]], 'Probability': probs[0:5]}))
