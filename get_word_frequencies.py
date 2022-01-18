@@ -19,7 +19,7 @@ import os
 filename = 'wordle_dictionary.txt'
 word_length = 5
 
-word_list = get_full_word_list('wordle_dictionary.txt',5)
+word_list = get_full_word_list(filename,word_length)
 
 word_set = set(word_list)
 
