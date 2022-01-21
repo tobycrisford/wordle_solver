@@ -43,22 +43,26 @@ def get_suggestions(word_list, green_counts, orange_counts):
 def simulate_wordle_response(word, guess):
     
     response = ['-' for i in range(len(guess))]
-    wlist = [c for c in word]
-    glist = [c for c in guess]
+    word_letters = dict()
+    for letter in word:
+        if letter in word_letters:
+            word_letters[letter] += 1
+        else:
+            word_letters[letter] = 1
+    guess_tracker = {i for i in range(len(guess))}
     
-    for l in range(len(guess)):
-        if word[l] == guess[l]:
-            response[l] = '*'
-            wlist[l] = '^'
-            glist[l] = '_'
-            
     for i in range(len(guess)):
-        for j in range(len(word)):
-            if glist[i] == wlist[j]:
-                response[i] = '.'
-                wlist[j] = '^'
-                glist[i] = '_'
-                break
+        if guess[i] == word[i]:
+            response[i] = '*'
+            word_letters[guess[i]] -= 1
+            guess_tracker.remove(i)
+    
+    for i in range(len(guess)): #Loop from left as leftmost letter turns orange
+        if i in guess_tracker:
+            if guess[i] in word_letters:
+                if word_letters[guess[i]] > 0:
+                    response[i] = '.'
+                    word_letters[guess[i]] -= 1
     
     return ''.join(response)
     
@@ -102,16 +106,14 @@ def get_suggestions_brutish_force(word_list, possibilities, frequency_dict):
     expected_information = np.zeros(len(word_list))
     
     for w in tqdm(range(len(word_list))):
-        response_dict = dict()
-        for possible in possibilities:
-            response_dict[possible] = simulate_wordle_response(possible, word_list[w])
         response_counts = dict()
         normalization_factor = 0
-        for r in response_dict:
-            if response_dict[r] in response_counts:
-                response_counts[response_dict[r]] += frequency_dict[r]
+        for r in possibilities:
+            response = simulate_wordle_response(r, word_list[w])
+            if response in response_counts:
+                response_counts[response] += frequency_dict[r]
             else:
-                response_counts[response_dict[r]] = frequency_dict[r]
+                response_counts[response] = frequency_dict[r]
             normalization_factor += frequency_dict[r]
 
         probabilities = np.array(list(response_counts.values())) / normalization_factor
