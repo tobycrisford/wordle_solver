@@ -16,7 +16,7 @@ This repository contains a python script for doing just that, which makes use of
 
 The rest of this readme explains in detail how each of these three methods work, introducing concepts from information theory as they are needed.
 
-## What are we trying to do?
+# What are we trying to do?
 
 Before we can program a computer to tell us the optimum word to guess next, we have to define what 'optimum word' means. Wordle players already have an intuitive sense of this. Putting common letters in your word seems like a good idea, and putting rare letters seems like a bad idea. Why? Because if you try a word like 'kudzu' on your first go, then most of the time you will receive back 5 greys, and the list of remaining words you still need to eliminate will be very long. Sure, sometimes you might get lucky. If the 'z' came back green or orange then you'd be almost there! But *on average*, this guess is going to leave you with many more remaining options to eliminate than a word like 'tares' would.
 
@@ -49,7 +49,7 @@ It's actually not the same at all, and it's because of what happens when we take
 
 It helps to remember what we ultimately care about here. Is our ultimate goal actually to minimize the number of remaining words? No. Our goal is to finish the game in the fewest number of turns. But we should expect the number of turns required to be roughly proportional to the the logarithm of the number of possible words. This justifies taking log(number of words left) as the "cost function" which we try to minimize in our optimization problem.
 
-## Method 1: Letter-by-letter approximation
+# Method 1: Letter-by-letter approximation
 
 We've defined what we mean by the optimum guess, so all that remains is to compute it. If we think about it, this seems like a daunting problem. We need to calculate what the average outcome of every possible guess would be. That means we need to consider every possible guess we could make (there's about 10,000 words in Wordle's valid word list), and for each of those, we then need to consider every possible solution to the game (on guess 1 this is again about 10,000). That's 100,000,000 Wordle goes that we'd need to simulate in order to work out the best guess for the first move. Not impossible (and we'll get to that in method 2), but it would be nice to have a quicker method to start off with, especially if we end up generalising this to the Wordle unlimited game, which allows different word lengths.
 
@@ -89,7 +89,7 @@ More seriously, this approach is going to go very wrong when it comes to guesses
 
 To fix this problem, I've added a heuristic fudge to method 1 which discounts the value of repeated letters. When evaluating the value of a letter in a particular place in a particular word, if that letter has already occurred in the guess, I pretend that the probability of an orange is now 0, and make up for that reduction in probability with an increased probability of grey (the probability of a green is unchanged). This fudge actually works surprisingly well, because the top suggested guess from Method 1 is then "tares", which agrees with the top suggested guess of the more accurate, but slower, Method 2.
 
-## Method 2: Finding the optimum guess without any approximations
+# Method 2: Finding the optimum guess without any approximations
 
 Under Method 1 we approximated the value of a word by summing the value of its letters. We saw that that worked pretty well, but it's not guaranteed to give us the right answer. It allowed for the same letter to have different values in different positions, but it didn't allow for interactions between the different letters (e.g. the fact that a 'Q' affects the information content of a following 'U'). We now want to compute the value of a word exactly, by considering it as a whole, taking absolutely everything into consideration.
 
@@ -113,7 +113,7 @@ The number of possible guesses we could make is the same on each turn, because w
 
 The first turn is the only turn on which Method 2 runs prohibitively slowly. It takes about 15 minutes to complete on my machine, which is longer than you probably want to spend on a game of Wordle. But fortunately, the computation for Guess 1 is exactly the same each time. This means you only need to run it once, cache the results, and retrieve those results in subsequent games. If you're only interested in knowing what the best possible guess is on turn 1, I can tell you that right now: "tares".
 
-## Method 3: Taking differing word frequencies into account
+# Method 3: Taking differing word frequencies into account
 
 Method 2 sounds like it should give us the mathematically optimum solution to Wordle. It ought to enable us to play the perfect game. In practice though, I found its performance a bit disappointing. Sure, it always got the answer before Wordle's maximum limit of 6 turns. And yes, it almost always got there in 3 or 4 tries, often 3, which is impressive. But good human players seem to get it in 3 fairly often as well. In fact, I know multiple people who've got the answer in just 2 tries! There's obviously some luck and some selection bias here. People are more likely to share results when they do really well. But still, I was a bit disappointed. What's going on?
 
@@ -135,7 +135,7 @@ If we translate this back into what we're trying to do to the size of the remain
 
 After testing Method 3 on several examples, it seems to always do at least as well as Method 2, and often better. It now mostly reaches the answer in 3 tries. I'm yet to score 2/6 though! I think with Method 3, we are now playing Wordle as well as it is possible to play it, at least if what we care about is minimizing the number of turns it takes to reach the answer on average. But it still might never score a 2, because minimizing the average performance is a conservative strategy. It won't take a punt on scoring 2 if that is likely to go wrong and lead to 4 or 5 turns being required, whereas a human might choose to take that risk. We could tell the computer to instead maximize the probability of getting the answer right in two turns, so that it goes all out for that, not treating a score of 5 as any worse than a score of 3. It would be interesting to see how an algorithm chasing that goal would behave. But that's a whole different optimization problem, and requires us to start from scratch. Maybe I'll add a Method 4 to this readme at some point!
 
-## A Final Complication
+# A Final Complication
 
 There's one final complication to consider, which affects all the methods presented, but particularly Method 3.
 
@@ -145,7 +145,7 @@ However, for Method 3, this becomes a bigger problem. A common situation is to e
 
 One way to solve this problem would be to give the guesses with a chance of being right a bigger boost, or come up with some other heuristic to tell the algorithm when it should switch from maximizing information to trying to guess correctly. But either option would tarnish the purity of this approach a bit. What I've gone for instead is to have the algorithm output two rankings after each guess: the top 5 words it thinks will give most information if I guess them next, and the top 5 words it thinks are most likely to be correct. I use my human judgement to decide which guess to input next from these lists. I think this is the best performance I've been able to achieve on the Wordle game. It's not fully automated, but that wasn't really the goal of this project. The goal was to get as good performance on the Wordle game as possible. I had the idea for it after failing to get 'query' in 6 guesses. I was staring at '-uer-' for ages convincing myself that there couldn't be any English word which contained those letters. I'm getting much better results now.
 
-## Some thoughts on different approaches to solving Wordle
+# Some thoughts on different approaches to solving Wordle
 
 There are plenty of other Wordle solvers online by now, which have often taken different approaches to the approach I've taken here. In some cases, I think my approach is better (e.g. multiple Wordle solvers try to minimize the expected number of words remaining after your guess, instead of minimizing the expected **logarithm** of the number of words remaining). But I've seen a couple of approaches that I think could achieve better performance than I've been able to manage, so I thought I'd discuss both here. 
 
