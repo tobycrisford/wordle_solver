@@ -2,6 +2,14 @@
 - A python script to help solve the Wordle game: clone and run wordle_solver.py to use.
 - A "debrief" app to give you interesting stats on your guesses after finishing a wordle game. Go here to use: https://share.streamlit.io/tobycrisford/wordle_solver/main/wordle_debrief_app.py
 
+- [Solving Wordle with a Computer](#solving-wordle-with-a-computer)
+- [What are we trying to do?](#what-are-we-trying-to-do-)
+- [Method 1: Letter-by-letter approximation](#method-1--letter-by-letter-approximation)
+- [Method 2: Finding the optimum guess without any approximations](#method-2--finding-the-optimum-guess-without-any-approximations)
+- [Method 3: Taking differing word frequencies into account](#method-3--taking-differing-word-frequencies-into-account)
+- [A Final Complication](#a-final-complication)
+- [Some thoughts on different approaches to solving Wordle](#some-thoughts-on-different-approaches-to-solving-wordle)
+
 # Solving Wordle with a Computer
 
 The game Wordle has recently (Jan 2021) gone viral. If you've not seen it before, you can play here: https://www.powerlanguage.co.uk/wordle/. The aim is to discover an unknown 5 letter word by making repeated guesses (with a maximum 6 guesses allowed). In response to each guess, you are told which letters you got in the right position (highlighted green), which letters are present in the word but you put in the wrong position (highlighted orange), and which letters are not present in the word at all (highlighted grey). It's a simple but addictive game.
