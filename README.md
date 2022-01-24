@@ -24,6 +24,8 @@ This repository contains a python script for doing just that, which makes use of
 
 The rest of this readme explains in detail how each of these three methods work, introducing concepts from information theory as they are needed.
 
+Note: The list of possible Wordle solutions (which you can extract from the source code) is much shorter than the list of valid guesses (about 2,000 vs about 12,000), but I always assume here that any valid guess could be a solution. This seems to be in the spirit of the game to me. Extracting the list of solutions from the source code would feel a bit like cheating (see discussion in the "Some thoughts on different approaches to solving Wordle" section).
+
 # What are we trying to do?
 
 Before we can program a computer to tell us the optimum word to guess next, we have to define what 'optimum word' means. Wordle players already have an intuitive sense of this. Putting common letters in your word seems like a good idea, and putting rare letters seems like a bad idea. Why? Because if you try a word like 'kudzu' on your first go, then most of the time you will receive back 5 greys, and the list of remaining words you still need to eliminate will be very long. Sure, sometimes you might get lucky. If the 'z' came back green or orange then you'd be almost there! But *on average*, this guess is going to leave you with many more remaining options to eliminate than a word like 'tares' would.
