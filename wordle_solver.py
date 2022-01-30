@@ -167,9 +167,9 @@ def preprocess_word_frequencies(freq_file, word_list):
 
 if __name__ == "__main__":
 
-    list_options = {'wordle': 'wordle_dictionary.txt', 'unlimited': 'wordle_unlimited_dictionary.txt'}
+    list_options = {'wordle': 'wordle_dictionary.txt', 'unlimited': 'wordle_unlimited_dictionary.txt', 'nerdle': 'nerdle_dictionary.txt'}
     
-    list_choice = input("Please specify which game you are playing, 'wordle' or 'unlimited'?")
+    list_choice = input("Please specify which game you are playing, 'wordle' or 'unlimited' or 'nerdle'?")
     
     length_choice = input("Which length of word are you playing?:")
     
