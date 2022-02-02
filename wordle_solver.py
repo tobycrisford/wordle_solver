@@ -32,7 +32,7 @@ def get_suggestions(word_list, green_counts, orange_counts):
                 orange_prob = 0
                 grey_prob = 1 - green_prob
             for p in (green_prob, orange_prob, grey_prob):
-                if p != 0:
+                if p > 0: #Greater than necessary as sometimes grey_prob=0 becomes grey_prob~ -1 x 10^-13
                     information[w] += - p * np.log2(p)
                     
     r = np.argsort(-1 * information)
