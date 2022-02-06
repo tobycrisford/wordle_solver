@@ -2,7 +2,7 @@
 - A python script to help solve the Wordle game: clone and run wordle_solver.py to use.
 - A "debrief" app to give you interesting stats on your guesses after finishing a wordle game. Go here to use: https://share.streamlit.io/tobycrisford/wordle_solver/main/wordle_debrief_app.py
 
-- [Solving Wordle with a Computer](#solving-wordle-with-a-computer)
+- [Overview](#overview)
 - [What are we trying to do?](#what-are-we-trying-to-do-)
 - [Method 1: Letter-by-letter approximation](#method-1--letter-by-letter-approximation)
 - [Method 2: Finding the optimum guess without any approximations](#method-2--finding-the-optimum-guess-without-any-approximations)
@@ -10,7 +10,7 @@
 - [A Final Complication](#a-final-complication)
 - [Some thoughts on different approaches to solving Wordle](#some-thoughts-on-different-approaches-to-solving-wordle)
 
-# Solving Wordle with a Computer
+# Overview
 
 The game Wordle has recently (Jan 2022) gone viral. If you've not seen it before, you can play here: https://www.powerlanguage.co.uk/wordle/. The aim is to discover an unknown 5 letter word by making repeated guesses (with a maximum 6 guesses allowed). In response to each guess, you are told which letters you got in the right position (highlighted green), which letters are present in the word but you put in the wrong position (highlighted orange), and which letters are not present in the word at all (highlighted grey). It's a simple but addictive game.
 
@@ -19,12 +19,14 @@ Can a computer help us to play Wordle? Of course. If the computer knows the list
 This repository contains a python script for doing just that, which makes use of information theory to calculate the optimum guess. There are three different methods it can use to do this (you can select which one you would like to use at each stage when you run the script):
 
 - The first is an approximate heuristic method, but it can run instantly.
-- The second method uses a brute force search to return the optimum guess, under the assumption that all valid guesses are equally likely to be correct. This takes about 15 minutes to run on my computer to return the first guess, but runs in under 30 seconds after that. Fortunately the best first guess is the same every time (it's "tares") so you don't have to run the brute force search on the first guess every time you play.
+- The second method uses a brute force search to return the optimum guess, under the assumption that all valid guesses are equally likely to be correct. This takes about 15 minutes to run on my computer to return the first guess, but usually runs in under 30 seconds after that. Fortunately the best first guess is the same every time (it's "tares") so you don't have to run the brute force search on the first guess every time you play.
 - The third method expands on the second method by taking into account how often each word appears in typical English text. It is based on the observation that more common words are more likely to appear as answers to the Wordle game (no one wants the answer to be a word they had never heard of). The best first guess is still "tares".
 
 The rest of this readme explains in detail how each of these three methods work, introducing concepts from information theory as they are needed.
 
 Note: The list of possible Wordle solutions (which you can extract from the source code) is much shorter than the list of valid guesses (about 2,000 vs about 12,000), but I always assume here that any valid guess could be a solution. This seems to be in the spirit of the game to me. Extracting the list of solutions from the source code would feel a bit like cheating (see discussion in the "Some thoughts on different approaches to solving Wordle" section).
+
+How well do these methods perform? Well, an exhaustive search has shown that [it is impossible for any strategy to take fewer than 3.42 turns on average to reach the solution](https://twitter.com/alexselby1770/status/1484241692102385668) (assuming the solution is drawn at random from the list of ~2000 potential solutions in Wordle's source code). If I allow Method 2 to cheat and only look for the answer on this smaller list of 2000, it takes 3.46 turns on average, which is very close to this theoretical limit. But if it is forced to look on the full list of 12000 valid guesses, it takes an unimpressive 4.08 turns on average. Method 3 significantly improves on this by making use of word frequencies in typical English text, which is a non-cheating way of honing in on that smaller list of 2000. The average performance of Method 3 seems to be closer to 3.5 again, but I can't test this easily because Method 3 is not fully automated. I still use my human judgement to decide when to switch from making guesses that maximize information, to making guesses which are likely to be right. Method 3 should probably be described as a Wordle assistant, rather than a Wordle solver, but it's the best performance I've been able to achieve on the Wordle game without cheating. It clearly outperforms Method 2 on the many examples I have now tested it on.
 
 # What are we trying to do?
 
