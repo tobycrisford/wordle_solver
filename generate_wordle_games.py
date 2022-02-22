@@ -10,8 +10,9 @@ import numpy as np
 import wordle_solver
 from tqdm import tqdm
 import pandas as pd
+from wordle_vis import create_vis
 
-clues = ["mick","john","andy"]
+clues = ["richard"]
 
 word_list = np.array(get_full_word_list("wordle_unlimited_dictionary.txt", len(clues[0])))
 
@@ -40,3 +41,12 @@ for i in tqdm(range(len(word_list))):
 potential_answers_df = pd.DataFrame(potential_answers).sort_values("value", ascending=False)
 print("---")      
 print(potential_answers_df.iloc[0:20])
+
+
+def create_output(df_index, filename):
+    
+    row_to_use = potential_answers_df.loc[df_index]
+    responses = []
+    for clue in clues:
+        responses.append(row_to_use[clue])
+    create_vis(clues, responses, filename)
