@@ -7,7 +7,7 @@ Created on Tue Feb 22 20:59:58 2022
 
 def create_vis(words, colours, file_out):
     
-    lines = ["<html>","<body>",'<svg viewBox="0 0 ' + str(len(words[0]) * 200) + ' ' + str(len(words) * 200) + '" xmlns="http://www.w3.org/2000/svg">']
+    lines = ["<html>","<body>",'<svg viewBox="0 0 ' + str(len(words[0]) * 250) + ' ' + str(len(words) * 250) + '" xmlns="http://www.w3.org/2000/svg">']
     for i in range(len(words)):
         for j in range(len(words[i])):
             rect_line = '<rect x="' + str(j * 100 + 10) + '" y="' + str(i * 100 + 10) + '" width="80" height="80" style="fill:'
